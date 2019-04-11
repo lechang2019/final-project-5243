@@ -1,0 +1,86 @@
+---
+title: "data_cleaning"
+output: html_document
+---
+
+```{r read prepared data}
+dat.2016 = fread(input = "../Data/dat.2016.csv", verbose = FALSE)
+dat.2017 = fread(input = "../Data/dat.2017.csv", verbose = FALSE)
+dat.2018 = fread(input = "../Data/dat.2018.csv", verbose = FALSE)
+```
+
+```{r read head of data}
+head(dat.2016)
+```
+
+```{r day of week. Or can use the "new.names" function; NO RUN}
+# NO RUN
+old.weekday.name = c(1, 2, 3, 4, 5, 6, 7, 9)
+new.weekday.name = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Unknown")
+
+weekday.name = function(dat.mod, old.name, new.name) {
+  dat.mod = as.character(dat.mod)
+  dat.mod = multigsub(text.var = dat.mod, pattern = old.name, replacement = new.name, fixed = TRUE)
+  return(dat.mod)
+}
+
+dat.2016$DAY_OF_WEEK = weekday.name(dat.mod = dat.2016$DAY_OF_WEEK, old.name = old.weekday.name, new.name = new.weekday.name)
+
+dat.2017$DAY_OF_WEEK = weekday.name(dat.mod = dat.2017$DAY_OF_WEEK, old.name = old.weekday.name, new.name = new.weekday.name)
+
+dat.2018$DAY_OF_WEEK = weekday.name(dat.mod = dat.2018$DAY_OF_WEEK, old.name = old.weekday.name, new.name = new.weekday.name)
+```
+
+```{r trim}
+# city name
+dat.2016$ORIGIN_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2016$ORIGIN_CITY_NAME)
+dat.2017$ORIGIN_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2017$ORIGIN_CITY_NAME)
+dat.2018$ORIGIN_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2018$ORIGIN_CITY_NAME)
+
+dat.2016$DEST_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2016$DEST_CITY_NAME)
+dat.2017$DEST_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2017$DEST_CITY_NAME)
+dat.2018$DEST_CITY_NAME = gsub(pattern = ",.*", replacement = "", x = dat.2018$DEST_CITY_NAME)
+```
+
+```{r read and trim lookup table}
+# weekdays
+L_WEEKDAYS = fread(input = "../Data/L_WEEKDAYS.csv_", verbose = FALSE)
+
+# unique carriers
+L_UNIQUE_CARRIERS = fread("../Data/L_UNIQUE_CARRIERS.csv_", verbose = FALSE)
+
+# airport id
+L_AIRPORT_ID = fread("../Data/L_AIRPORT_ID.csv_", verbose = FALSE)
+L_AIRPORT_ID$Description = gsub(pattern = "^.*?:", replacement = "", x = L_AIRPORT_ID$Description)
+L_AIRPORT_ID$Description = gsub(pattern = "^.*? ", replacement = "", x = L_AIRPORT_ID$Description)
+```
+
+```{r new.names function}
+new.names = function(dat.mod, name.dat) {
+  dat.mod = as.character(dat.mod)
+  old.name = c()
+  new.name = c()
+  old.name = append(old.name, as.character(pull(name.dat[, 1])))
+  new.name = append(new.name, as.character(pull(name.dat[, 2])))
+  
+  dat.mod = multigsub(text.var = dat.mod, pattern = old.name, replacement = new.name, fixed = TRUE)
+  return(dat.mod)
+}
+```
+
+```{r using new.names function}
+# weekdays
+dat.2016$DAY_OF_WEEK = new.names(dat.mod = dat.2016$DAY_OF_WEEK, name.dat = L_WEEKDAYS)
+dat.2017$DAY_OF_WEEK = new.names(dat.mod = dat.2017$DAY_OF_WEEK, name.dat = L_WEEKDAYS)
+dat.2018$DAY_OF_WEEK = new.names(dat.mod = dat.2018$DAY_OF_WEEK, name.dat = L_WEEKDAYS)
+
+# unique carriers
+dat.2016$OP_UNIQUE_CARRIER = new.names(dat.mod = dat.2016$OP_UNIQUE_CARRIER, name.dat = L_UNIQUE_CARRIERS)
+dat.2017$OP_UNIQUE_CARRIER = new.names(dat.mod = dat.2017$OP_UNIQUE_CARRIER, name.dat = L_UNIQUE_CARRIERS)
+dat.2018$OP_UNIQUE_CARRIER = new.names(dat.mod = dat.2018$OP_UNIQUE_CARRIER, name.dat = L_UNIQUE_CARRIERS)
+
+# airport id
+dat.2016$ORIGIN_AIRPORT_ID = new.names(dat.mod = dat.2016$ORIGIN_AIRPORT_ID, name.dat = L_AIRPORT_ID)
+dat.2017$ORIGIN_AIRPORT_ID = new.names(dat.mod = dat.2017$ORIGIN_AIRPORT_ID, name.dat = L_AIRPORT_ID)
+dat.2018$ORIGIN_AIRPORT_ID = new.names(dat.mod = dat.2018$ORIGIN_AIRPORT_ID, name.dat = L_AIRPORT_ID)
+```
